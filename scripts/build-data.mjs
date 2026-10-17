@@ -63,7 +63,15 @@ function extractSessions(html) {
 
 function normalise(raw) {
   return raw
-    .filter(s => s.c_101342?.value === 'Yes' && s.track && !/invite only/i.test(s.track) && s.date && s.start_time)
+    .filter(
+      s =>
+        s.c_101342?.value === 'Yes' &&
+        values(s.c_102337).includes('Sessions') &&
+        !['JiffleNow Meeting', 'Circles'].includes(s.type_id?.value) &&
+        !/invite only/i.test(s.track ?? '') &&
+        s.date &&
+        s.start_time,
+    )
     .map(s => ({
       id: s.id,
       title: decodeEntities(s.name).trim(),
@@ -71,13 +79,14 @@ function normalise(raw) {
       date: s.date,
       start: hhmm(s.start_time),
       end: hhmm(s.end_time),
-      track: s.track,
+      // Keynotes, meals and activities carry no track in the catalogue.
+      track: s.track ?? (s.type_id?.value === 'General Session' ? 'Keynote' : s.type_id?.value === 'Meals' ? 'Meals & breaks' : 'Event'),
       type: s.type_id?.value ?? null,
       level: values(s.c_101001)[0]?.replace(/\s*\(.*\)/, '') ?? null,
       topics: values(s.c_103076),
       areas: values(s.c_102895),
       industries: values(s.c_101003),
-      featured: values(s.c_102013).includes('Featured'),
+      featured: values(s.c_102013).includes('Featured') || s.type_id?.value === 'General Session',
       speakers: (s.speakers ?? []).map(p => ({
         id: Number(p.id),
         name: decodeEntities(p.name ?? `${p.first_name} ${p.last_name}`).trim(),

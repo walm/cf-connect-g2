@@ -102,7 +102,7 @@ export class ListScreen implements Screen {
     const [pos, n] = this.list.position()
     const cur = this.currentSession()
     const where = cur ? dayShort(cur.date) : ''
-    f.header = fitLine(`${this.opts.title}  ·  ${where}  ·  ${pos}/${n}  ·  ${now.hhmm}`, BODY_INNER_W)
+    f.header = fitLine([this.opts.title, where, n ? `${pos}/${n}` : '', now.hhmm].filter(Boolean).join('  ·  '), BODY_INNER_W)
     if (!n) {
       f.body = this.opts.emptyText ?? 'Nothing here.'
       f.footer = 'double-tap: back'
