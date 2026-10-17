@@ -1,0 +1,27 @@
+{
+  "name": "connect-g2",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Cloudflare Connect 2026 schedule for Even Realities G2 smart glasses",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "data": "node scripts/build-data.mjs",
+    "pack": "pnpm build && evenhub pack app.json dist -o connect-g2.ehpk",
+    "simulate": "evenhub-simulator http://localhost:5173",
+    "simulate:headless": "evenhub-simulator --automation-port 7777 http://localhost:5173",
+    "qr": "evenhub qr --port 5173"
+  },
+  "dependencies": {
+    "@evenrealities/even_hub_sdk": "^0.0.16",
+    "@evenrealities/pretext": "^0.1.4"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "sharp": "^0.34.0",
+    "typescript": "^5.9.0",
+    "vite": "^7.0.0"
+  }
+}
