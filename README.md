@@ -23,6 +23,9 @@ On the glasses:
 - **Session detail** – paginated description, speakers with up to two speaker photos, time until start.
   Tap toggles the session in *My schedule*.
 - **Context menu** (tap + hold): Now & next · Star / unstar · Jump to now · Next day · Previous day · My schedule · Home.
+- **Hide tracks** – toggle whole tracks out of every list (Now & next, days, Featured, counts). *Cloudflare
+  University* and *Global Partner Summit* are hidden by default. My schedule and "Browse by track" always
+  show everything. The same toggles are checkboxes in the phone UI; the choice persists like starred sessions.
 
 On the phone (the Even App WebView): search, day tabs, track and type filters, star sessions,
 "Show on glasses", a live mirror of what the glasses display, and on-screen gesture buttons.

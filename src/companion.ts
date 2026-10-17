@@ -6,7 +6,7 @@ import type { App } from './app'
 import type { Frame } from './glasses/renderer'
 import { eventNow, getTimeOverride, setTimeOverride } from './model/clock'
 import { DAYS, EVENT_NAME, FETCHED_AT, SESSIONS, TRACKS, TYPES, VENUE, dayLabel, dayShort, statusOf, type Session } from './model/sessions'
-import { stars } from './store'
+import { hiddenTracks, stars } from './store'
 
 const esc = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
 const photoUrl = (id: number) => `${import.meta.env.BASE_URL}speakers/${id}.png`.replace(/\/\/+/g, '/')
@@ -43,6 +43,7 @@ export function mountCompanion() {
         <select id="track"><option value="">All tracks</option>${TRACKS.map(t => `<option value="${esc(t.label)}">${esc(t.label)} (${t.count})</option>`).join('')}</select>
         <select id="type"><option value="">All types</option>${TYPES.map(t => `<option value="${esc(t.label)}">${esc(t.label)} (${t.count})</option>`).join('')}</select>
       </div>
+      <div class="hide" id="hide"></div>
     </div>
     <div class="count" id="count"></div>
     <div id="list"></div>
@@ -75,10 +76,23 @@ export function mountCompanion() {
     days.innerHTML = tabs.map(t => `<button data-day="${t.id}" class="${state.day === t.id ? 'on' : ''}">${t.label}</button>`).join('')
   }
 
+  // Hidden tracks: ticked = hidden everywhere on the glasses and here, except in
+  // My schedule and when that exact track is picked in the dropdown.
+  const hide = $('#hide')
+  const renderHide = () => {
+    hide.innerHTML =
+      `<span>Hide tracks:</span>` +
+      TRACKS.map(
+        t =>
+          `<label class="${hiddenTracks.has(t.label) ? 'on' : ''}"><input type="checkbox" data-hide="${esc(t.label)}" ${hiddenTracks.has(t.label) ? 'checked' : ''} />${esc(t.label)}</label>`,
+      ).join('')
+  }
+
   const matches = (s: Session) => {
     if (state.day === 'mine' && !stars.has(s.id)) return false
     if (state.day !== 'all' && state.day !== 'mine' && s.date !== state.day) return false
     if (state.track && s.track !== state.track) return false
+    if (!state.track && state.day !== 'mine' && hiddenTracks.has(s.track)) return false
     if (state.type && s.type !== state.type) return false
     if (state.q) {
       const hay = `${s.title} ${s.desc} ${s.track} ${s.type} ${s.topics.join(' ')} ${s.speakers.map(p => `${p.name} ${p.company}`).join(' ')}`.toLowerCase()
@@ -130,6 +144,7 @@ export function mountCompanion() {
 
   const renderAll = () => {
     renderDays()
+    renderHide()
     renderList()
   }
 
@@ -158,6 +173,10 @@ export function mountCompanion() {
   $('#type').addEventListener('change', e => {
     state.type = (e.target as HTMLSelectElement).value
     renderList()
+  })
+  hide.addEventListener('change', e => {
+    const cb = (e.target as HTMLElement).closest<HTMLInputElement>('[data-hide]')
+    if (cb) hiddenTracks.toggle(cb.dataset.hide!)
   })
   list.addEventListener('click', e => {
     const t = e.target as HTMLElement
@@ -193,6 +212,7 @@ export function mountCompanion() {
   })
 
   stars.subscribe(renderAll)
+  hiddenTracks.subscribe(renderAll)
   setInterval(() => {
     if (!getTimeOverride()) renderList()
   }, 60_000)

@@ -1,26 +1,33 @@
-// "My schedule": the set of starred session ids. Persisted through the Even
-// App bridge storage (survives on the phone) and mirrored to localStorage so
-// the companion page and the simulator keep it between reloads.
+// Small persisted sets: "My schedule" (starred session ids) and hidden tracks.
+// Persisted through the Even App bridge storage (survives on the phone) and
+// mirrored to localStorage so the companion page and the simulator keep them
+// between reloads.
 import type { EvenAppBridge } from '@evenrealities/even_hub_sdk'
 
-const KEY = 'cfconnect2026.starred.v1'
-
-class StarStore {
-  private ids = new Set<number>()
+class PersistedSet<T extends string | number> {
+  private items: Set<T>
   private listeners = new Set<() => void>()
   private bridge: EvenAppBridge | null = null
+
+  constructor(
+    private key: string,
+    private parse: (v: unknown) => T | null,
+    defaults: T[] = [],
+  ) {
+    this.items = new Set(defaults)
+  }
 
   async init(bridge: EvenAppBridge | null) {
     this.bridge = bridge
     let json: string | null = null
     try {
-      json = bridge ? await bridge.getLocalStorage(KEY) : null
+      json = bridge ? await bridge.getLocalStorage(this.key) : null
     } catch (e) {
       console.warn('bridge storage unavailable', e)
     }
     if (!json) {
       try {
-        json = localStorage.getItem(KEY)
+        json = localStorage.getItem(this.key)
       } catch {
         json = null
       }
@@ -28,28 +35,28 @@ class StarStore {
     if (json) {
       try {
         const arr = JSON.parse(json)
-        if (Array.isArray(arr)) this.ids = new Set(arr.map(Number).filter(Number.isFinite))
+        if (Array.isArray(arr)) this.items = new Set(arr.map(this.parse).filter((v): v is T => v !== null))
       } catch (e) {
-        console.warn('corrupt starred list, resetting', e)
+        console.warn(`corrupt ${this.key}, keeping defaults`, e)
       }
     }
     this.emit()
   }
 
-  has = (id: number) => this.ids.has(id)
+  has = (v: T) => this.items.has(v)
   get size() {
-    return this.ids.size
+    return this.items.size
   }
-  all(): number[] {
-    return [...this.ids]
+  all(): T[] {
+    return [...this.items]
   }
 
-  toggle(id: number): boolean {
-    if (this.ids.has(id)) this.ids.delete(id)
-    else this.ids.add(id)
+  toggle(v: T): boolean {
+    if (this.items.has(v)) this.items.delete(v)
+    else this.items.add(v)
     void this.persist()
     this.emit()
-    return this.ids.has(id)
+    return this.items.has(v)
   }
 
   subscribe(l: () => void) {
@@ -64,13 +71,13 @@ class StarStore {
   private async persist() {
     const json = JSON.stringify(this.all())
     try {
-      localStorage.setItem(KEY, json)
+      localStorage.setItem(this.key, json)
     } catch {
       /* private mode etc. */
     }
     if (this.bridge) {
       try {
-        await this.bridge.setLocalStorage(KEY, json)
+        await this.bridge.setLocalStorage(this.key, json)
       } catch (e) {
         console.warn('bridge setLocalStorage failed', e)
       }
@@ -78,4 +85,14 @@ class StarStore {
   }
 }
 
-export const stars = new StarStore()
+const num = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : null)
+const str = (v: unknown) => (typeof v === 'string' && v ? v : null)
+
+/** Starred session ids ("My schedule"). */
+export const stars = new PersistedSet<number>('cfconnect2026.starred.v1', num)
+
+/** Tracks hidden from every list except My schedule. Partner / training tracks are hidden by default. */
+export const hiddenTracks = new PersistedSet<string>('cfconnect2026.hiddenTracks.v1', str, [
+  'Cloudflare University',
+  'Global Partner Summit',
+])

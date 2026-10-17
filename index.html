@@ -56,6 +56,10 @@
       .seg button.on { background: var(--orange); border-color: var(--orange); color: #141414; font-weight: 600; }
       .selects { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
       .selects select { width: 100%; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; }
+      .hide { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
+      .hide label { display: inline-flex; align-items: center; gap: 5px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 5px 10px; color: var(--text); }
+      .hide label.on { border-color: var(--orange); color: var(--orange); text-decoration: line-through; }
+      .hide input { accent-color: var(--orange); margin: 0; }
 
       .count { color: var(--muted); font-size: 12px; margin: 4px 2px 10px; }
       .daybar { position: sticky; top: 0; z-index: 2; background: linear-gradient(var(--bg) 70%, transparent); padding: 10px 2px 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: var(--orange-2); }

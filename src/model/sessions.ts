@@ -1,4 +1,5 @@
 import raw from '../data/sessions.json'
+import { hiddenTracks } from '../store'
 import { eventNow, toMin, type EventTime } from './clock'
 
 export interface Speaker {
@@ -80,7 +81,10 @@ function countBy(key: (s: Session) => string | null) {
 export const TRACKS = countBy(s => s.track)
 export const TYPES = countBy(s => s.type)
 
-export const sessionsOn = (date: string) => SESSIONS.filter(s => s.date === date)
+/** Everything except sessions on a hidden track. My schedule ignores this. */
+export const visibleSessions = () => SESSIONS.filter(s => !hiddenTracks.has(s.track))
+
+export const sessionsOn = (date: string) => visibleSessions().filter(s => s.date === date)
 
 /** The event day that is "today", or the nearest upcoming day, or the last day once it's over. */
 export function focusDay(now: EventTime = eventNow()): string {
@@ -94,13 +98,14 @@ export function isEventDay(now: EventTime = eventNow()) {
 
 /** Live sessions plus everything starting in the next `horizon` minutes. */
 export function nowAndNext(horizon = 90, now: EventTime = eventNow()): Session[] {
-  const soon = SESSIONS.filter(s => {
+  const pool = visibleSessions()
+  const soon = pool.filter(s => {
     const st = statusOf(s, now)
     return st === 'live' || (st === 'upcoming' && minutesUntil(s, now) <= horizon)
   })
   if (soon.length) return soon
   // Nothing in the window: show the next slot that has anything at all.
-  const upcoming = SESSIONS.filter(s => statusOf(s, now) === 'upcoming')
+  const upcoming = pool.filter(s => statusOf(s, now) === 'upcoming')
   if (!upcoming.length) return []
   const firstStart = upcoming[0].date + upcoming[0].start
   const slotEnd = minutesUntil(upcoming[0], now) + horizon

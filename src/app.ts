@@ -5,7 +5,7 @@ import { bindInput, type Action } from './glasses/input'
 import { Renderer, type Frame } from './glasses/renderer'
 import { onClockChange } from './model/clock'
 import { sessionById } from './model/sessions'
-import { stars } from './store'
+import { hiddenTracks, stars } from './store'
 import { DetailScreen } from './screens/detail'
 import { homeScreen, myScheduleScreen, nowScreen, scheduleScreen } from './screens/home'
 import { ListScreen } from './screens/list'
@@ -59,6 +59,7 @@ export class App implements Nav {
       this.unbind = bindInput(this.bridge, a => this.onAction(a))
     }
     stars.subscribe(() => this.requestRender())
+    hiddenTracks.subscribe(() => this.requestRender())
     onClockChange(() => {
       // Time travel: rebuild the home screen so "today" moves with the clock.
       this.stack = [homeScreen()]
