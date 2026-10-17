@@ -1,7 +1,7 @@
 {
   "package_id": "net.walm.connectg2",
   "name": "Connect 2026",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "edition": "202601",
   "min_sdk_version": "0.0.16",
   "entrypoint": "index.html",
