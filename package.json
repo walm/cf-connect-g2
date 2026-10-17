@@ -9,7 +9,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "data": "node scripts/build-data.mjs",
-    "pack": "pnpm build && evenhub pack app.json dist -o connect-g2.ehpk",
+    "ehpk": "pnpm build && evenhub pack app.json dist -o connect-g2.ehpk",
     "simulate": "evenhub-simulator http://localhost:5181",
     "simulate:headless": "evenhub-simulator --automation-port 7777 http://localhost:5181",
     "qr": "evenhub qr --port 5181"
