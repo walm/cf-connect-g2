@@ -3,6 +3,18 @@
 A Cloudflare Connect 2026 (Moscone West, Oct 19–21) schedule app for Even Realities
 G2 smart glasses, built on the [Even Hub SDK](https://hub.evenrealities.com/docs).
 
+![Glasses showcase: home, now & next, session detail with speaker photos, my schedule, browse](docs/showcase.gif)
+
+| | |
+|---|---|
+| ![Home](docs/screenshots/01-home.png) | ![Now & next](docs/screenshots/02-now-next.png) |
+| ![Session detail with speaker photos](docs/screenshots/03-detail-photos.png) | ![My schedule](docs/screenshots/07-my-schedule.png) |
+| ![Schedule with now marker](docs/screenshots/09-tue-scrolled.png) | ![Context menu](docs/screenshots/10-context-menu.png) |
+
+Captured from the [Even Hub simulator](https://hub.evenrealities.com/docs) at a simulated
+Tue Oct 20, 10:30 (`?now=2026-10-20T10:30`). All frames are in [`docs/screenshots`](docs/screenshots)
+and are 576 × 288 PNGs, the format the developer portal accepts for store listing screenshots.
+
 On the glasses:
 
 - **Home** – Now & next (live count), each event day, My schedule, Featured, browse by track / type.
