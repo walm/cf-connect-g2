@@ -135,7 +135,7 @@ export function mountCompanion() {
 
   const mirror = (f: Frame) => {
     $('#g-hdr').textContent = f.header
-    $('#g-body').textContent = f.detail.trim() ? f.detail : f.body
+    $('#g-body').textContent = f.body
     $('#g-ftr').textContent = f.footer
     $('#g-photos').innerHTML = f.photos.filter((p): p is number => p !== null).map(p => `<img src="${photoUrl(p)}" alt="" />`).join('')
   }

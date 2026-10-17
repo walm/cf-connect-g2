@@ -1,6 +1,6 @@
 // Navigation stack + glue between the glasses renderer, input and screens.
 import type { EvenAppBridge } from '@evenrealities/even_hub_sdk'
-import { buildPage, type MenuItem } from './glasses/layout'
+import type { MenuItem } from './glasses/layout'
 import { bindInput, type Action } from './glasses/input'
 import { Renderer, type Frame } from './glasses/renderer'
 import { onClockChange } from './model/clock'
@@ -54,9 +54,8 @@ export class App implements Nav {
   async start() {
     this.stack = [homeScreen()]
     if (this.bridge) {
-      const status = await this.bridge.createStartUpPageContainer(buildPage(MENU_ITEMS))
-      if (status !== 0) console.error('createStartUpPageContainer failed:', status)
-      this.renderer = new Renderer(this.bridge)
+      this.renderer = new Renderer(this.bridge, MENU_ITEMS)
+      await this.renderer.init()
       this.unbind = bindInput(this.bridge, a => this.onAction(a))
     }
     stars.subscribe(() => this.requestRender())

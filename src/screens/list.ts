@@ -112,8 +112,7 @@ export class ListScreen implements Screen {
       .visible()
       .map(({ row, selected }) => fitLine((row.selectable ? (selected ? CURSOR : NO_CURSOR) : '') + row.text, BODY_INNER_W))
       .join('\n')
-    const starHint = cur && stars.has(cur.id) ? 'in my schedule' : 'tap: details'
-    f.footer = fitLine(`${starHint}  ·  swipe: move  ·  tap+hold: menu  ·  double-tap: back`, BODY_INNER_W)
+    f.footer = 'tap: details  ·  swipe: move  ·  tap+hold: menu  ·  double-tap: back'
     return f
   }
 

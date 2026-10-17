@@ -1,55 +1,72 @@
 // Diff-based frame renderer. A screen describes what it wants as a Frame;
-// the renderer only pushes the containers that changed, serialised on one
+// the renderer pushes only the containers that changed, serialised on one
 // queue (image sends must never overlap, and ordered text updates keep the
-// header/body/footer consistent).
+// header/body/footer consistent). Switching between the text and photo
+// layouts is the only time the page is rebuilt.
 import { ImageRawDataUpdate, TextContainerUpgrade, type EvenAppBridge } from '@evenrealities/even_hub_sdk'
-import { C, PHOTO } from './layout'
+import { C, PHOTO, modeFor, rebuildPage, startupPage, type LayoutMode, type MenuItem } from './layout'
 
 export interface Frame {
   header: string
   body: string
-  detail: string
   footer: string
-  /** Speaker ids whose photo should appear in photo1/photo2 (null = blank). */
+  /** Speaker ids whose photo should appear in photo1/photo2 (null = none). */
   photos: [number | null, number | null]
 }
 
-export const emptyFrame = (): Frame => ({ header: ' ', body: ' ', detail: ' ', footer: ' ', photos: [null, null] })
+export const emptyFrame = (): Frame => ({ header: ' ', body: ' ', footer: ' ', photos: [null, null] })
 
 const photoUrl = (id: number) => `${import.meta.env.BASE_URL}speakers/${id}.png`.replace(/\/\/+/g, '/')
 
 export class Renderer {
   private last: Frame | null = null
+  private mode: LayoutMode = 'text'
   private queue: Promise<unknown> = Promise.resolve()
   private cache = new Map<number, Promise<Uint8Array | null>>()
   private blank: Promise<Uint8Array> | null = null
-  private shown: [number | null | 'blank', number | null | 'blank'] = [null, null]
-  readonly frameListeners = new Set<(f: Frame) => void>()
+  private shown: [number | null, number | null] = [null, null]
 
-  constructor(private bridge: EvenAppBridge) {}
+  constructor(
+    private bridge: EvenAppBridge,
+    private menuItems: MenuItem[],
+  ) {}
+
+  /** Create the startup page (text layout, empty). Must run before any render. */
+  async init(): Promise<number> {
+    const status = await this.bridge.createStartUpPageContainer(startupPage(this.menuItems, emptyFrame()))
+    if (status !== 0) console.error('createStartUpPageContainer failed:', status)
+    this.last = emptyFrame()
+    return status
+  }
 
   render(frame: Frame): Promise<void> {
-    const prev = this.last
-    this.last = frame
-    this.frameListeners.forEach(l => l(frame))
     const run = async () => {
-      const texts: Array<[keyof typeof C, string]> = [
-        ['header', frame.header],
-        ['body', frame.body],
-        ['detail', frame.detail],
-        ['footer', frame.footer],
-      ]
-      for (const [key, content] of texts) {
-        if (prev && prev[key as 'header'] === content) continue
-        await this.upgrade(C[key], content)
+      const prev = this.last
+      this.last = frame
+      const mode = modeFor(frame)
+      if (mode !== this.mode) {
+        const ok = await this.bridge.rebuildPageContainer(rebuildPage(mode, this.menuItems, frame))
+        if (!ok) console.warn('rebuildPageContainer returned false')
+        this.mode = mode
+        this.shown = [null, null]
+      } else {
+        const texts: Array<['header' | 'body' | 'footer', string]> = [
+          ['header', frame.header],
+          ['body', frame.body],
+          ['footer', frame.footer],
+        ]
+        for (const [key, content] of texts) {
+          if (prev && prev[key] === content) continue
+          await this.upgrade(C[key], content)
+        }
       }
-      for (let i = 0; i < 2; i++) {
-        const want = frame.photos[i]
-        const slot = i === 0 ? C.photo1 : C.photo2
-        const have = this.shown[i]
-        if (want === have || (want === null && (have === 'blank' || have === null))) continue
-        await this.pushPhoto(slot, want)
-        this.shown[i] = want ?? 'blank'
+      if (mode === 'photo') {
+        for (let i = 0; i < 2; i++) {
+          const want = frame.photos[i]
+          if (want === this.shown[i]) continue
+          await this.pushPhoto(i === 0 ? C.photo1 : C.photo2, want)
+          this.shown[i] = want
+        }
       }
     }
     this.queue = this.queue.then(run, run).catch(e => console.error('render failed', e))
@@ -64,7 +81,7 @@ export class Renderer {
   }
 
   private async pushPhoto(slot: { id: number; name: string }, speakerId: number | null) {
-    const bytes = speakerId === null ? await this.blankPng() : (await this.photo(speakerId)) ?? (await this.blankPng())
+    const bytes = speakerId === null ? await this.blankPng() : ((await this.photo(speakerId)) ?? (await this.blankPng()))
     const result = await this.bridge.updateImageRawData(
       new ImageRawDataUpdate({ containerID: slot.id, containerName: slot.name, imageData: bytes }),
     )

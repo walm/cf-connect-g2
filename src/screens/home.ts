@@ -62,7 +62,7 @@ export function homeScreen(): Screen {
       },
       ...DAYS.map(d => ({
         label: dayLabel(d),
-        hint: `${sessionsOn(d).length} sessions${d === n.date ? '  ← today' : ''}`,
+        hint: `${sessionsOn(d).length} sessions${d === n.date ? '  ◀ today' : ''}`,
         open: (nav: Nav) => nav.push(scheduleScreen(d)),
       })),
       { label: 'My schedule', hint: `★ ${stars.size}`, open: nav => nav.push(myScheduleScreen()) },

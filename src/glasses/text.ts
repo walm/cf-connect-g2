@@ -1,11 +1,19 @@
 // Text fitting for the G2's single LVGL font. pretext ships the same glyph
 // metrics as the firmware, so we can truncate rows to exactly one line and
 // paginate long descriptions without guessing.
-import { pxTruncate, measureTextWrap } from '@evenrealities/pretext'
+import { pxTruncate, measureTextWrap, getTextWidth } from '@evenrealities/pretext'
 
 export const LINE_H = 27
 
-export const fitLine = (text: string, widthPx: number) => pxTruncate(text.replace(/\s+/g, ' '), widthPx)
+export const fitLine = (text: string, widthPx: number) => pxTruncate(text.replace(/[\n\r\t]+/g, ' '), widthPx)
+
+/** Run of spaces roughly as wide as `sample`, so unselected rows line up under the cursor glyph. */
+export function spacesAsWideAs(sample: string): string {
+  const target = getTextWidth(sample)
+  let s = ''
+  while (getTextWidth(s + ' ') <= target) s += ' '
+  return s
+}
 
 /** Split text into pages of at most `maxLines` rendered lines at `widthPx`. */
 export function paginate(source: string, widthPx: number, maxLines: number): string[] {

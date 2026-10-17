@@ -73,10 +73,8 @@ export class DetailScreen implements Screen {
     const f = emptyFrame()
     const s = this.session
     f.header = fitLine(`SESSION  ·  ${dayShort(s.date)} ${s.start}  ·  page ${this.page + 1}/${this.pages.length}  ·  ${eventNow().hhmm}`, BODY_INNER_W)
-    if (hasPhotos) {
-      f.detail = this.pages[this.page]
-      f.photos = this.photos()
-    } else f.body = this.pages[this.page]
+    f.body = this.pages[this.page]
+    if (hasPhotos) f.photos = this.photos()
     const starred = stars.has(s.id)
     f.footer = fitLine(`tap: ${starred ? 'remove from' : 'add to'} my schedule  ·  swipe: read  ·  double-tap: back`, BODY_INNER_W)
     return f

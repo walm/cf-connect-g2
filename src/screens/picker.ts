@@ -29,7 +29,7 @@ export class PickerScreen implements Screen {
 
   private rows(): Row[] {
     return this.entries().map((e, i) => ({
-      text: e.hint ? `${e.label}   ${e.hint}` : e.label,
+      text: e.hint ? `${e.label}  ·  ${e.hint}` : e.label,
       selectable: true,
       key: i,
       onSelect: e.open,

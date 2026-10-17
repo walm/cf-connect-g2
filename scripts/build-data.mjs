@@ -117,11 +117,10 @@ async function buildPhotos(sessions) {
           .rotate()
           .resize(PHOTO_SIZE, PHOTO_SIZE, { fit: 'cover', position: 'attention' })
           .greyscale()
-          .normalise({ lower: 2, upper: 98 })
-          .linear(1.15, -12)
-          .sharpen({ sigma: 0.8 })
+          .normalise({ lower: 1, upper: 99 })
+          .gamma(1.1)
           .toColourspace('b-w')
-          .png({ compressionLevel: 9, palette: true, colours: 16, dither: 0.6 })
+          .png({ compressionLevel: 9 })
           .toFile(out)
         done++
       } catch (e) {

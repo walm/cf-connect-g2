@@ -1,5 +1,6 @@
 import type { Action } from '../glasses/input'
 import type { Frame } from '../glasses/renderer'
+import { spacesAsWideAs } from '../glasses/text'
 
 export interface Nav {
   push(s: Screen): void
@@ -102,4 +103,4 @@ export class CursorList {
 }
 
 export const CURSOR = '▶ '
-export const NO_CURSOR = '   '
+export const NO_CURSOR = spacesAsWideAs(CURSOR)
